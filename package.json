@@ -1,0 +1,19 @@
+{
+  "name": "lab04-react-intermediate",
+  "version": "1.0.0",
+  "description": "Lab 04 - React Intermediate Concepts Demo",
+  "scripts": {
+    "dev": "npx serve demo -p 3000 -s",
+    "start": "npx serve demo -p 3000 -s"
+  },
+  "keywords": [
+    "react",
+    "hooks",
+    "demo"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
+}

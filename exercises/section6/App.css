@@ -1,0 +1,30 @@
+/* Section 6.2: Theme Switcher Styles */
+
+.button-light {
+  background-color: white;
+  color: black;
+  border: 1px solid black;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+.button-dark {
+  background-color: #333;
+  color: white;
+  border: 1px solid white;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+.app-light {
+  background-color: #f0f0f0;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.app-dark {
+  background-color: #1a1a1a;
+  color: white;
+  min-height: 100vh;
+  padding: 20px;
+}

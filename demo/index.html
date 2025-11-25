@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab04 - React Intermediate Exercises Demo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="root"></div>
+    
+    <!-- React & ReactDOM from CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <script type="text/babel" data-presets="react">
+        const { useState, useEffect, useRef, useContext, createContext } = React;
+
+        // ==================== SECTION 1: useEffect ====================
+        
+        // 1.3 MouseTracker Component
+        function MouseTracker() {
+            const [position, setPosition] = useState({ x: 0, y: 0 });
+            const [isTracking, setIsTracking] = useState(true);
+
+            useEffect(() => {
+                if (!isTracking) return;
+
+                const handleMouseMove = (e) => {
+                    setPosition({ x: e.clientX, y: e.clientY });
+                    console.log(`Mouse position: X=${e.clientX}, Y=${e.clientY}`);
+                };
+
+                window.addEventListener('mousemove', handleMouseMove);
+
+                // Cleanup function
+                return () => {
+                    window.removeEventListener('mousemove', handleMouseMove);
+                    console.log('MouseTracker cleanup - event listener removed');
+                };
+            }, [isTracking]);
+
+            return (
+                <div className="demo-box">
+                    <h3>🖱️ Mouse Tracker</h3>
+                    <p>Move your mouse to see coordinates:</p>
+                    <div className="position-display">
+                        <span>X: <strong>{position.x}</strong></span>
+                        <span>Y: <strong>{position.y}</strong></span>
+                    </div>
+                    <button 
+                        className={isTracking ? 'btn-danger' : 'btn-success'}
+                        onClick={() => setIsTracking(!isTracking)}
+                    >
+                        {isTracking ? '⏹ Stop Tracking' : '▶ Start Tracking'}
+                    </button>
+                </div>
+            );
+        }
+
+        // ==================== SECTION 2: useRef ====================
+        
+        // 2.1 UncontrolledLogin Component
+        function UncontrolledLogin() {
+            const usernameRef = useRef(null);
+            const passwordRef = useRef(null);
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                const username = usernameRef.current.value;
+                const password = passwordRef.current.value;
+                alert(`🔐 Login Info:\nUsername: ${username}\nPassword: ${'*'.repeat(password.length)}`);
+            };
+
+            const handleFocus = () => {
+                usernameRef.current.focus();
+            };
+
+            return (
+                <div className="demo-box">
+                    <h3>🔓 Uncontrolled Login (useRef)</h3>
+                    <form onSubmit={handleSubmit}>
+                        <div className="form-group">
+                            <label>Username:</label>
+                            <input 
+                                type="text" 
+                                ref={usernameRef}
+                                placeholder="Enter username"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Password:</label>
+                            <input 
+                                type="password" 
+                                ref={passwordRef}
+                                placeholder="Enter password"
+                            />
+                        </div>
+                        <div className="button-group">
+                            <button type="submit" className="btn-primary">Login</button>
+                            <button type="button" className="btn-secondary" onClick={handleFocus}>
+                                Focus Username
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            );
+        }
+
+        // ==================== SECTION 3: Data Fetching ====================
+        
+        // Sample posts data in English for PostFetcher
+        const samplePosts = [
+            {
+                id: 1,
+                userId: 1,
+                title: "Introduction to React Hooks",
+                body: "React Hooks are functions that let you use state and other React features in functional components. The most common hooks are useState for managing state and useEffect for handling side effects like data fetching and subscriptions."
+            },
+            {
+                id: 2,
+                userId: 1,
+                title: "Understanding the useEffect Hook",
+                body: "The useEffect hook lets you perform side effects in function components. It serves the same purpose as componentDidMount, componentDidUpdate, and componentWillUnmount in React classes, but unified into a single API."
+            },
+            {
+                id: 3,
+                userId: 2,
+                title: "Working with useRef in React",
+                body: "The useRef hook creates a mutable reference that persists across renders. It's commonly used to access DOM elements directly or to store values that don't trigger re-renders when changed."
+            },
+            {
+                id: 4,
+                userId: 2,
+                title: "React Context API Explained",
+                body: "The Context API provides a way to pass data through the component tree without having to pass props manually at every level. It's designed to share data that can be considered global for a tree of React components."
+            },
+            {
+                id: 5,
+                userId: 3,
+                title: "Building Custom Hooks",
+                body: "Custom hooks let you extract component logic into reusable functions. A custom hook is a JavaScript function whose name starts with 'use' and that may call other hooks. They help keep your components clean and DRY."
+            },
+            {
+                id: 6,
+                userId: 3,
+                title: "React Router Fundamentals",
+                body: "React Router is the standard routing library for React. It enables navigation among views in a React application, allows the browser URL to change, and keeps the UI in sync with the URL."
+            },
+            {
+                id: 7,
+                userId: 4,
+                title: "State Management Patterns",
+                body: "Managing state effectively is crucial for React applications. Options include local state with useState, shared state with Context API, and external libraries like Redux or Zustand for complex global state."
+            },
+            {
+                id: 8,
+                userId: 4,
+                title: "Handling Forms in React",
+                body: "React offers two approaches to handling forms: controlled components where React state is the single source of truth, and uncontrolled components where form data is handled by the DOM itself."
+            },
+            {
+                id: 9,
+                userId: 5,
+                title: "Data Fetching Best Practices",
+                body: "When fetching data in React, always handle loading and error states. Use useEffect for simple cases, but consider libraries like React Query or SWR for caching, background updates, and better developer experience."
+            },
+            {
+                id: 10,
+                userId: 5,
+                title: "React Performance Optimization",
+                body: "Optimize React performance by using React.memo for component memoization, useMemo for expensive calculations, useCallback for function references, and proper key usage in lists."
+            }
+        ];
+
+        // 3.2 PostFetcher Component
+        function PostFetcher() {
+            const [data, setData] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState(null);
+            const [postId, setPostId] = useState(1);
+
+            const fetchPost = async () => {
+                setLoading(true);
+                setError(null);
+                
+                // Simulate network delay
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                try {
+                    const id = parseInt(postId);
+                    if (id < 1 || id > 10) {
+                        throw new Error(`Post not found. Please enter ID between 1-10.`);
+                    }
+                    
+                    const post = samplePosts.find(p => p.id === id);
+                    if (!post) {
+                        throw new Error(`Post with ID ${id} not found`);
+                    }
+                    
+                    setData(post);
+                    
+                } catch (err) {
+                    setError(err);
+                    setData(null);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            useEffect(() => {
+                fetchPost();
+            }, [postId]);
+
+            return (
+                <div className="demo-box">
+                    <h3>📡 Post Fetcher (Data Fetching)</h3>
+                    
+                    <div className="post-controls">
+                        <label>Post ID (1-10): </label>
+                        <input 
+                            type="number" 
+                            min="1" 
+                            max="10"
+                            value={postId}
+                            onChange={(e) => setPostId(e.target.value)}
+                        />
+                        <button className="btn-primary" onClick={fetchPost}>
+                            🔄 Refresh
+                        </button>
+                    </div>
+
+                    <div className="fetch-result">
+                        {loading && <div className="loading">⏳ Loading...</div>}
+                        
+                        {error && <div className="error">❌ Error: {error.message}</div>}
+                        
+                        {data && !loading && (
+                            <div className="post-card">
+                                <h4>{data.title}</h4>
+                                <p>{data.body}</p>
+                                <small>Post ID: {data.id} | User ID: {data.userId}</small>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== SECTION 4: Forms ====================
+        
+        // 4.1 ControlledSignup Component
+        function ControlledSignup() {
+            const [formData, setFormData] = useState({ 
+                email: '', 
+                password: '',
+                confirmPassword: ''
+            });
+            const [submitted, setSubmitted] = useState(null);
+
+            const handleChange = (e) => {
+                const { name, value } = e.target;
+                setFormData(prev => ({
+                    ...prev,
+                    [name]: value
+                }));
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (formData.password !== formData.confirmPassword) {
+                    alert('❌ Passwords do not match!');
+                    return;
+                }
+                setSubmitted(formData);
+                console.log('Form Data:', formData);
+            };
+
+            return (
+                <div className="demo-box">
+                    <h3>📝 Controlled Signup Form</h3>
+                    <div className="form-container">
+                        <form onSubmit={handleSubmit}>
+                            <div className="form-group">
+                                <label>Email:</label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    placeholder="example@email.com"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Password:</label>
+                                <input
+                                    type="password"
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    placeholder="Enter password"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Confirm Password:</label>
+                                <input
+                                    type="password"
+                                    name="confirmPassword"
+                                    value={formData.confirmPassword}
+                                    onChange={handleChange}
+                                    placeholder="Confirm password"
+                                />
+                            </div>
+                            <button type="submit" className="btn-primary">Sign Up</button>
+                        </form>
+                        
+                        <div className="state-preview">
+                            <h4>📊 Real-time State:</h4>
+                            <pre>{JSON.stringify(formData, null, 2)}</pre>
+                            {submitted && (
+                                <>
+                                    <h4>✅ Submitted Data:</h4>
+                                    <pre>{JSON.stringify(submitted, null, 2)}</pre>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== SECTION 6: Context API ====================
+        
+        // Theme Context
+        const ThemeContext = createContext('light');
+
+        // ThemeButton (Deeply nested consumer)
+        function ThemeButton() {
+            const theme = useContext(ThemeContext);
+            return (
+                <button className={`theme-btn theme-btn-${theme}`}>
+                    I'm a {theme} themed button!
+                </button>
+            );
+        }
+
+        // Toolbar
+        function Toolbar() {
+            return (
+                <div className="toolbar">
+                    <span>Toolbar → </span>
+                    <ThemeButton />
+                </div>
+            );
+        }
+
+        // Dashboard
+        function DashboardContext() {
+            return (
+                <div className="dashboard-context">
+                    <span>Dashboard → </span>
+                    <Toolbar />
+                </div>
+            );
+        }
+
+        // Theme Switcher App
+        function ThemeSwitcher() {
+            const [theme, setTheme] = useState('light');
+
+            return (
+                <div className="demo-box">
+                    <h3>🎨 Theme Switcher (Context API)</h3>
+                    <ThemeContext.Provider value={theme}>
+                        <div className={`theme-demo theme-${theme}`}>
+                            <div className="theme-controls">
+                                <button 
+                                    className={`btn-theme ${theme === 'light' ? 'active' : ''}`}
+                                    onClick={() => setTheme('light')}
+                                >
+                                    ☀️ Light
+                                </button>
+                                <button 
+                                    className={`btn-theme ${theme === 'dark' ? 'active' : ''}`}
+                                    onClick={() => setTheme('dark')}
+                                >
+                                    🌙 Dark
+                                </button>
+                            </div>
+                            
+                            <div className="component-tree">
+                                <p>App (Provider) →</p>
+                                <DashboardContext />
+                            </div>
+                        </div>
+                    </ThemeContext.Provider>
+                </div>
+            );
+        }
+
+        // ==================== SECTION 7: Custom Hooks ====================
+        
+        // useLocalStorage Custom Hook
+        function useLocalStorage(key, initialValue) {
+            const [storedValue, setStoredValue] = useState(() => {
+                try {
+                    const item = window.localStorage.getItem(key);
+                    return item ? JSON.parse(item) : initialValue;
+                } catch (error) {
+                    return initialValue;
+                }
+            });
+
+            const setValue = (value) => {
+                try {
+                    const valueToStore = value instanceof Function ? value(storedValue) : value;
+                    setStoredValue(valueToStore);
+                    window.localStorage.setItem(key, JSON.stringify(valueToStore));
+                } catch (error) {
+                    console.error('Error setting localStorage:', error);
+                }
+            };
+
+            return [storedValue, setValue];
+        }
+
+        // PersistentCounter using useLocalStorage
+        function PersistentCounter() {
+            const [count, setCount] = useLocalStorage('lab04-counter', 0);
+            const [name, setName] = useLocalStorage('lab04-name', '');
+
+            return (
+                <div className="demo-box">
+                    <h3>💾 Persistent Storage (Custom Hook)</h3>
+                    
+                    <div className="persistent-demos">
+                        <div className="counter-section">
+                            <h4>Counter (survives refresh)</h4>
+                            <div className="counter-display">{count}</div>
+                            <div className="button-group">
+                                <button className="btn-primary" onClick={() => setCount(c => c + 1)}>+</button>
+                                <button className="btn-primary" onClick={() => setCount(c => c - 1)}>-</button>
+                                <button className="btn-danger" onClick={() => setCount(0)}>Reset</button>
+                            </div>
+                        </div>
+                        
+                        <div className="name-section">
+                            <h4>Your Name (survives refresh)</h4>
+                            <input 
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="Enter your name"
+                            />
+                            <p>Hello, <strong>{name || 'Guest'}</strong>!</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== SECTION 8: Mini Blog Dashboard ====================
+        
+        // Auth Context for Blog
+        const AuthContext = createContext(null);
+
+        function useAuth() {
+            return useContext(AuthContext);
+        }
+
+        // useFetch Custom Hook
+        function useFetch(url) {
+            const [data, setData] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+
+            useEffect(() => {
+                if (!url) return;
+                
+                const controller = new AbortController();
+
+                const fetchData = async () => {
+                    setLoading(true);
+                    try {
+                        const response = await fetch(url, { signal: controller.signal });
+                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                        const json = await response.json();
+                        setData(json);
+                        setError(null);
+                    } catch (err) {
+                        if (err.name !== 'AbortError') {
+                            setError(err);
+                            setData(null);
+                        }
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+
+                fetchData();
+                return () => controller.abort();
+            }, [url]);
+
+            return { data, loading, error };
+        }
+
+        // Login Page
+        function LoginPage({ onNavigate }) {
+            const usernameRef = useRef(null);
+            const { login } = useAuth();
+
+            useEffect(() => {
+                usernameRef.current?.focus();
+            }, []);
+
+            const handleLogin = (e) => {
+                e.preventDefault();
+                const username = usernameRef.current.value || 'Guest';
+                login(username);
+                onNavigate('dashboard');
+            };
+
+            return (
+                <div className="blog-page login-page">
+                    <h2>🔐 BlogDash Login</h2>
+                    <form onSubmit={handleLogin}>
+                        <div className="form-group">
+                            <label>Username:</label>
+                            <input ref={usernameRef} type="text" placeholder="Enter username" />
+                        </div>
+                        <div className="form-group">
+                            <label>Password:</label>
+                            <input type="password" placeholder="Enter password" />
+                        </div>
+                        <button type="submit" className="btn-primary">Log In</button>
+                    </form>
+                    <p className="login-hint">Enter any username to login</p>
+                </div>
+            );
+        }
+
+        // Sample blog posts in English
+        const blogPosts = [
+            {
+                id: 1,
+                title: "Getting Started with React Hooks",
+                body: "React Hooks revolutionized how we write React components. useState and useEffect are the most commonly used hooks that allow functional components to manage state and side effects. In this article, we'll explore the fundamentals of hooks and why they've become the standard approach for modern React development.",
+                author: "John Smith",
+                date: "Nov 20, 2025",
+                category: "React"
+            },
+            {
+                id: 2,
+                title: "Understanding useEffect: A Complete Guide",
+                body: "The useEffect hook is your escape hatch for synchronizing with external systems. Whether you're fetching data, setting up subscriptions, or manipulating the DOM, useEffect handles it all. Learn how to properly use dependency arrays and cleanup functions to avoid memory leaks.",
+                author: "Sarah Johnson",
+                date: "Nov 18, 2025",
+                category: "Hooks"
+            },
+            {
+                id: 3,
+                title: "Building Custom Hooks for Reusable Logic",
+                body: "Custom hooks allow you to extract component logic into reusable functions. From useLocalStorage to useFetch, learn how to create your own hooks that can be shared across your entire application. This pattern promotes code reuse and keeps your components clean.",
+                author: "Mike Chen",
+                date: "Nov 15, 2025",
+                category: "Advanced"
+            },
+            {
+                id: 4,
+                title: "React Context API: Solving Prop Drilling",
+                body: "Prop drilling can make your code hard to maintain. The Context API provides a way to share data across your component tree without passing props manually at every level. Learn when to use Context and when other state management solutions might be better.",
+                author: "Emily Davis",
+                date: "Nov 12, 2025",
+                category: "State Management"
+            },
+            {
+                id: 5,
+                title: "React Router v6: Modern Client-Side Routing",
+                body: "React Router v6 introduced significant changes including createBrowserRouter and data APIs. Discover how to set up nested routes, handle dynamic parameters with useParams, and implement protected routes for authentication flows in your applications.",
+                author: "David Wilson",
+                date: "Nov 10, 2025",
+                category: "Routing"
+            },
+            {
+                id: 6,
+                title: "Best Practices for Data Fetching in React",
+                body: "From useEffect to React Query, there are many ways to fetch data in React. Learn about loading states, error handling, and why modern libraries like TanStack Query have become the go-to solution for server state management in production applications.",
+                author: "Lisa Anderson",
+                date: "Nov 8, 2025",
+                category: "Data Fetching"
+            }
+        ];
+
+        // Dashboard Page
+        function DashboardPage({ onNavigate }) {
+            const { user, logout } = useAuth();
+            const [loading, setLoading] = useState(true);
+            const [posts, setPosts] = useState([]);
+
+            useEffect(() => {
+                // Simulate loading delay
+                const timer = setTimeout(() => {
+                    setPosts(blogPosts);
+                    setLoading(false);
+                }, 800);
+                return () => clearTimeout(timer);
+            }, []);
+
+            const handleLogout = () => {
+                logout();
+                onNavigate('login');
+            };
+
+            if (loading) return <div className="blog-page"><div className="loading">⏳ Loading posts...</div></div>;
+
+            return (
+                <div className="blog-page dashboard-page">
+                    <header>
+                        <h2>📚 Blog Dashboard</h2>
+                        <div className="user-info">
+                            <span>Welcome back, <strong>{user}</strong>!</span>
+                            <button className="btn-danger" onClick={handleLogout}>Logout</button>
+                        </div>
+                    </header>
+                    
+                    <div className="posts-grid">
+                        {posts.map(post => (
+                            <div 
+                                key={post.id} 
+                                className="post-item"
+                                onClick={() => onNavigate('post', post.id)}
+                            >
+                                <span className="post-category">{post.category}</span>
+                                <h4>{post.title}</h4>
+                                <p>{post.body.substring(0, 100)}...</p>
+                                <div className="post-footer">
+                                    <span className="post-author">By {post.author}</span>
+                                    <span className="read-more">Read more →</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        // Post Detail Page
+        function PostDetailPage({ postId, onNavigate }) {
+            const [post, setPost] = useState(null);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                const timer = setTimeout(() => {
+                    const foundPost = blogPosts.find(p => p.id === postId);
+                    setPost(foundPost);
+                    setLoading(false);
+                }, 500);
+                return () => clearTimeout(timer);
+            }, [postId]);
+
+            if (loading) return <div className="blog-page"><div className="loading">⏳ Loading post...</div></div>;
+            if (!post) return <div className="blog-page"><div className="error">❌ Post not found</div></div>;
+
+            return (
+                <div className="blog-page post-detail-page">
+                    <button className="btn-back" onClick={() => onNavigate('dashboard')}>
+                        ← Back to Dashboard
+                    </button>
+                    
+                    <article>
+                        <span className="post-category-detail">{post.category}</span>
+                        <h2>{post.title}</h2>
+                        <div className="post-info">
+                            <span>✍️ {post.author}</span>
+                            <span>📅 {post.date}</span>
+                        </div>
+                        <p className="post-body">{post.body}</p>
+                        <p className="post-body">
+                            This comprehensive guide covers everything you need to know about {post.category.toLowerCase()} in React. 
+                            We'll walk through practical examples and best practices that you can apply immediately in your projects.
+                        </p>
+                        <p className="post-body">
+                            Understanding these concepts is crucial for building scalable and maintainable React applications. 
+                            Whether you're a beginner or an experienced developer, mastering these fundamentals will significantly improve your development workflow.
+                        </p>
+                    </article>
+                </div>
+            );
+        }
+
+        // Blog Dashboard App (Capstone)
+        function BlogDashboard() {
+            const [isAuthenticated, setIsAuthenticated] = useState(false);
+            const [user, setUser] = useState(null);
+            const [currentPage, setCurrentPage] = useState('login');
+            const [selectedPostId, setSelectedPostId] = useState(null);
+
+            const login = (username) => {
+                setIsAuthenticated(true);
+                setUser(username);
+            };
+
+            const logout = () => {
+                setIsAuthenticated(false);
+                setUser(null);
+            };
+
+            const navigate = (page, postId = null) => {
+                if (page === 'dashboard' && !isAuthenticated) {
+                    setCurrentPage('login');
+                    return;
+                }
+                if (page === 'post') {
+                    setSelectedPostId(postId);
+                }
+                setCurrentPage(page);
+            };
+
+            return (
+                <div className="demo-box blog-dashboard">
+                    <h3>🚀 Capstone: BlogDash (All Concepts Combined)</h3>
+                    
+                    <div className="blog-container">
+                        <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+                            {currentPage === 'login' && (
+                                <LoginPage onNavigate={navigate} />
+                            )}
+                            
+                            {currentPage === 'dashboard' && isAuthenticated && (
+                                <DashboardPage onNavigate={navigate} />
+                            )}
+                            
+                            {currentPage === 'post' && isAuthenticated && (
+                                <PostDetailPage postId={selectedPostId} onNavigate={navigate} />
+                            )}
+                        </AuthContext.Provider>
+                    </div>
+                    
+                    <div className="concepts-used">
+                        <h4>📋 Concepts Applied:</h4>
+                        <ul>
+                            <li>✅ useEffect (data loading, auto-focus)</li>
+                            <li>✅ useRef (input focus on mount)</li>
+                            <li>✅ useState (form & navigation state)</li>
+                            <li>✅ useContext (AuthContext provider)</li>
+                            <li>✅ Custom Hook (useFetch pattern)</li>
+                            <li>✅ Protected Routes (auth guard)</li>
+                            <li>✅ Dynamic Routes (post/:id params)</li>
+                        </ul>
+                    </div>
+                </div>
+            );
+        }
+
+        // ==================== MAIN APP ====================
+        
+        function App() {
+            const [activeSection, setActiveSection] = useState('all');
+
+            const sections = [
+                { id: 'all', label: '📚 All' },
+                { id: 'section1', label: '1️⃣ useEffect' },
+                { id: 'section2', label: '2️⃣ useRef' },
+                { id: 'section3', label: '3️⃣ Data Fetching' },
+                { id: 'section4', label: '4️⃣ Forms' },
+                { id: 'section6', label: '6️⃣ Context API' },
+                { id: 'section7', label: '7️⃣ Custom Hooks' },
+                { id: 'section8', label: '8️⃣ Capstone' },
+            ];
+
+            const renderSection = (id) => {
+                switch(id) {
+                    case 'section1': return <MouseTracker key="s1" />;
+                    case 'section2': return <UncontrolledLogin key="s2" />;
+                    case 'section3': return <PostFetcher key="s3" />;
+                    case 'section4': return <ControlledSignup key="s4" />;
+                    case 'section6': return <ThemeSwitcher key="s6" />;
+                    case 'section7': return <PersistentCounter key="s7" />;
+                    case 'section8': return <BlogDashboard key="s8" />;
+                    default: return null;
+                }
+            };
+
+            return (
+                <div className="app">
+                    <header className="app-header">
+                        <h1>⚛️ Lab04 - React Intermediate Exercises</h1>
+                        <p>Interactive Demo</p>
+                    </header>
+
+                    <nav className="section-nav">
+                        {sections.map(section => (
+                            <button
+                                key={section.id}
+                                className={`nav-btn ${activeSection === section.id ? 'active' : ''}`}
+                                onClick={() => setActiveSection(section.id)}
+                            >
+                                {section.label}
+                            </button>
+                        ))}
+                    </nav>
+
+                    <main className="main-content">
+                        {activeSection === 'all' ? (
+                            <>
+                                <MouseTracker />
+                                <UncontrolledLogin />
+                                <PostFetcher />
+                                <ControlledSignup />
+                                <ThemeSwitcher />
+                                <PersistentCounter />
+                                <BlogDashboard />
+                            </>
+                        ) : (
+                            renderSection(activeSection)
+                        )}
+                    </main>
+
+                    <footer className="app-footer">
+                        <p>Lab04 - React Intermediate | ThuyDuong</p>
+                    </footer>
+                </div>
+            );
+        }
+
+        // Render App
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
